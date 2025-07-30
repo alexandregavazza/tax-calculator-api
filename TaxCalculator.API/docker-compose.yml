@@ -14,7 +14,6 @@ services:
     networks:
       - taxnet
 
-  # Optional: SQLite Admin UI (Web interface)
   sqlite-web:
     image: coleifer/sqlite-web
     ports:
@@ -24,6 +23,13 @@ services:
     command: /data/TaxCalculator.db
     networks:
       - taxnet
+
+  redis:
+    image: redis:7.2
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
 
 volumes:
   sqlite-data:
