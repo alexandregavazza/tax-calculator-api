@@ -14,6 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Add CORS policy to allow requests from the frontend application
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",

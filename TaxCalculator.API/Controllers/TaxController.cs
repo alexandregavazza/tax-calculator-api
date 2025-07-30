@@ -29,7 +29,7 @@ public class TaxController : ControllerBase
 
         if (cachedTax != null)
         {
-            return Ok(new { annual_tax_paid = JsonSerializer.Deserialize<decimal>(cachedTax) });
+            return Ok(JsonSerializer.Serialize(cachedTax));
         }
 
         var bands = _context.TaxBands.ToList();
@@ -40,6 +40,6 @@ public class TaxController : ControllerBase
         };
 
         await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(tax), options);
-        return Ok(new { annual_tax_paid = tax });
+        return Ok(JsonSerializer.Serialize(tax));
     }
 }

@@ -13,12 +13,31 @@ public class TaxCalculator : ITaxCalculator
         _taxBands = bands.OrderBy(b => b.Min);
     }
 
-    public decimal CalculateTax(decimal income) => 0;
-
-    public decimal CalculateTax(decimal income, List<TaxBand> taxBands)
+    public TaxResult CalculateTax(decimal income) => new TaxResult
     {
+        GrossAnnualSalary = income,
+        GrossMonthlySalary = income / 12,
+        NetAnnualSalary = income,
+        NetMonthlySalary = income / 12,
+        AnnualTaxPaid = 0,
+        MonthlyTaxPaid = 0
+    };
+
+    public TaxResult CalculateTax(decimal income, List<TaxBand> taxBands)
+    {
+        if (income <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(income), "*Income cannot be negative or zero*");
+        }
+
         decimal totalTax = 0;
         decimal incomeLeft = income;
+
+        TaxResult taxResult = new TaxResult
+        {
+            GrossAnnualSalary = Math.Round(income, 2),
+            GrossMonthlySalary = Math.Round(income / 12, 2)
+        };
 
         foreach (var band in taxBands)
         {
@@ -36,6 +55,11 @@ public class TaxCalculator : ITaxCalculator
             }
         }
 
-        return totalTax;
+        taxResult.NetAnnualSalary = Math.Round(income - totalTax, 2);
+        taxResult.NetMonthlySalary = Math.Round(taxResult.NetAnnualSalary / 12, 2);
+        taxResult.AnnualTaxPaid = Math.Round(totalTax, 2);
+        taxResult.MonthlyTaxPaid = Math.Round(totalTax / 12, 2);
+
+        return taxResult;
     }
 }

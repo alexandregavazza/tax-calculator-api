@@ -4,6 +4,6 @@ namespace TaxCalculator.API.Services;
 
 public interface ITaxCalculator
 {
-    decimal CalculateTax(decimal income);
-    decimal CalculateTax(decimal income, List<TaxBand> taxBands);
+    TaxResult CalculateTax(decimal income);
+    TaxResult CalculateTax(decimal income, List<TaxBand> taxBands);
 }

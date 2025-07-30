@@ -15,34 +15,80 @@ namespace TaxCalculator.Tests.Services
             };
 
         [Theory]
-        [InlineData(0, 0)]
-        [InlineData(4000, 0)]
-        public void CalculateTax_ReturnsCorrectTax(decimal salary, decimal expectedTax)
+        [InlineData(0)]
+        [InlineData(-1000)]
+        public void Calculate_HandlesZeroAndNegativeSalary(decimal salary)
         {
             var bands = GetDefaultBands();
             var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
-            var tax = calculator.CalculateTax(salary);
-            tax.Should().BeApproximately(expectedTax, 0.01m);
-        }
 
-        [Theory]
-        [InlineData(0, 0)]
-        [InlineData(-1000, 0)]  // Negative salary returns 0 tax
-        public void CalculateTax_HandlesZeroAndNegativeSalary(decimal salary, decimal expectedTax)
-        {
-            var bands = GetDefaultBands();
-            var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
-            var tax = calculator.CalculateTax(salary);
-            tax.Should().BeApproximately(expectedTax, 0.01m);
+            Action act = () => calculator.CalculateTax(salary, bands);
+
+            act.Should().Throw<ArgumentOutOfRangeException>();
         }
 
         [Fact]
-        public void CalculateTax_WithEmptyBands_ReturnsZero()
+        public void Calculate_WithMiddleBandSalary()
         {
-            var bands = new List<TaxBand>();
+            var bands = GetDefaultBands();
             var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
-            var tax = calculator.CalculateTax(10000);
-            tax.Should().Be(0);
+
+            var result = calculator.CalculateTax(10000m, bands);
+
+            result.GrossAnnualSalary.Should().Be(10000m);
+            result.GrossMonthlySalary.Should().BeApproximately(833.33m, 0.01m);
+            result.AnnualTaxPaid.Should().BeApproximately(1000m, 0.01m);
+            result.MonthlyTaxPaid.Should().BeApproximately(83.33m, 0.01m);
+            result.NetAnnualSalary.Should().BeApproximately(9000m, 0.01m);
+            result.NetMonthlySalary.Should().BeApproximately(750m, 0.01m);
+        }
+
+        [Fact]
+        public void Calculate_WithLowerBandSalary()
+        {
+            var bands = GetDefaultBands();
+            var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
+
+            var result = calculator.CalculateTax(4000m, bands);
+
+            result.GrossAnnualSalary.Should().Be(4000m);
+            result.GrossMonthlySalary.Should().BeApproximately(333.33m, 0.01m);
+            result.AnnualTaxPaid.Should().BeApproximately(0, 0.01m);
+            result.MonthlyTaxPaid.Should().BeApproximately(0, 0.01m);
+            result.NetAnnualSalary.Should().BeApproximately(4000m, 0.01m);
+            result.NetMonthlySalary.Should().BeApproximately(333.33m, 0.01m);
+        }
+
+        [Fact]
+        public void Calculate_WithHigherBandSalary()
+        {
+            var bands = GetDefaultBands();
+            var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
+
+            var result = calculator.CalculateTax(38000m, bands);
+
+            result.GrossAnnualSalary.Should().Be(38000m);
+            result.GrossMonthlySalary.Should().BeApproximately(3166.67m, 0.01m);
+            result.AnnualTaxPaid.Should().BeApproximately(10200.0m, 0.01m);
+            result.MonthlyTaxPaid.Should().BeApproximately(850.0m, 0.01m);
+            result.NetAnnualSalary.Should().BeApproximately(27800.0m, 0.01m);
+            result.NetMonthlySalary.Should().BeApproximately(2316.67m, 0.01m);
+        }
+
+        [Fact]
+        public void Calculate_WithUltraHigherBandSalary()
+        {
+            var bands = GetDefaultBands();
+            var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
+
+            var result = calculator.CalculateTax(155000m, bands);
+
+            result.GrossAnnualSalary.Should().Be(155000m);
+            result.GrossMonthlySalary.Should().BeApproximately(12916.67m, 0.01m);
+            result.AnnualTaxPaid.Should().BeApproximately(57000.0m, 0.01m);
+            result.MonthlyTaxPaid.Should().BeApproximately(4750.0m, 0.01m);
+            result.NetAnnualSalary.Should().BeApproximately(98000.0m, 0.01m);
+            result.NetMonthlySalary.Should().BeApproximately(8166.67m, 0.01m);
         }
     }
 }
