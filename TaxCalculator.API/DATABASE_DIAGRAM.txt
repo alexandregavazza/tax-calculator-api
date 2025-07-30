@@ -1,0 +1,8 @@
++-------------------+
+|     TaxBand       |
++-------------------+
+| Id        (int) PK|
+| Min       (decimal)|
+| Max       (decimal, nullable)|
+| Rate      (decimal)|
++-------------------+

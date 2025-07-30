@@ -1,0 +1,28 @@
+﻿TaxCalculator.API/
+├── TaxCalculator.API.sln
+│
+├── TaxCalculator.API/                          # Main Web API Project
+│   ├── Controllers/
+│   │   └── TaxController.cs
+│   │
+│   ├── Models/
+│   │   ├── TaxBand.cs
+│   │   └── TaxRequest.cs
+│   │
+│   ├── Services/
+│   │   ├── ITaxCalculator.cs
+│   │   └── TaxCalculator.cs
+│   │
+│   ├── Data/
+│   │   ├── AppDbContext.cs
+│   │   └── SeedData.cs
+│   │
+│   ├── Program.cs
+│   ├── appsettings.json
+│   ├── TaxCalculator.API.csproj
+│   └── README.md
+│
+├── TaxCalculator.Tests/
+│   ├── Services/
+│   │   └── TestTaxCalculatorTests.cs
+│   └── TaxCalculator.Tests.csproj
