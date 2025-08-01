@@ -1,11 +1,19 @@
 ﻿using TaxCalculator.API.Services;
 using TaxCalculator.API.Models;
 using FluentAssertions;
+using Moq;
+using Microsoft.Extensions.Logging;
 
 namespace TaxCalculator.Tests.Services
 {
     public class TestTaxCalculatorService
     {
+        private TaxCalculator.API.Services.TaxCalculator CreateCalculator()
+        {
+            var mockLogger = new Mock<ILogger<TaxCalculator.API.Services.TaxCalculator>>();
+            return new TaxCalculator.API.Services.TaxCalculator(mockLogger.Object);
+        }
+
         private List<TaxBand> GetDefaultBands() =>
             new List<TaxBand>
             {
@@ -20,7 +28,7 @@ namespace TaxCalculator.Tests.Services
         public void Calculate_HandlesZeroAndNegativeSalary(decimal salary)
         {
             var bands = GetDefaultBands();
-            var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
+            var calculator = CreateCalculator();
 
             Action act = () => calculator.CalculateTax(salary, bands);
 
@@ -31,7 +39,7 @@ namespace TaxCalculator.Tests.Services
         public void Calculate_WithMiddleBandSalary()
         {
             var bands = GetDefaultBands();
-            var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
+            var calculator = CreateCalculator();
 
             var result = calculator.CalculateTax(10000m, bands);
 
@@ -47,7 +55,7 @@ namespace TaxCalculator.Tests.Services
         public void Calculate_WithLowerBandSalary()
         {
             var bands = GetDefaultBands();
-            var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
+            var calculator = CreateCalculator();
 
             var result = calculator.CalculateTax(4000m, bands);
 
@@ -63,7 +71,7 @@ namespace TaxCalculator.Tests.Services
         public void Calculate_WithHigherBandSalary()
         {
             var bands = GetDefaultBands();
-            var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
+            var calculator = CreateCalculator();
 
             var result = calculator.CalculateTax(38000m, bands);
 
@@ -79,7 +87,7 @@ namespace TaxCalculator.Tests.Services
         public void Calculate_WithUltraHigherBandSalary()
         {
             var bands = GetDefaultBands();
-            var calculator = new TaxCalculator.API.Services.TaxCalculator(bands);
+            var calculator = CreateCalculator();
 
             var result = calculator.CalculateTax(155000m, bands);
 

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TaxCalculator.API.Data;
 using TaxCalculator.API.Models;
 
@@ -6,60 +6,72 @@ namespace TaxCalculator.API.Services;
 
 public class TaxCalculator : ITaxCalculator
 {
-    private readonly IEnumerable<TaxBand> _taxBands;
+    private readonly ILogger<TaxCalculator> _logger;
 
-    public TaxCalculator(IEnumerable<TaxBand> bands)
+    public TaxCalculator(ILogger<TaxCalculator> logger)
     {
-        _taxBands = bands.OrderBy(b => b.Min);
+        _logger = logger;
     }
-
-    public TaxResult CalculateTax(decimal income) => new TaxResult
-    {
-        GrossAnnualSalary = income,
-        GrossMonthlySalary = income / 12,
-        NetAnnualSalary = income,
-        NetMonthlySalary = income / 12,
-        AnnualTaxPaid = 0,
-        MonthlyTaxPaid = 0
-    };
 
     public TaxResult CalculateTax(decimal income, List<TaxBand> taxBands)
     {
         if (income <= 0)
+            throw new ArgumentOutOfRangeException(nameof(income), "Income must be greater than zero.");
+
+        if (taxBands == null || !taxBands.Any())
         {
-            throw new ArgumentOutOfRangeException(nameof(income), "*Income cannot be negative or zero*");
+            _logger.LogWarning("No tax bands provided for income calculation.");
+            return CreateZeroTaxResult(income);
         }
 
-        decimal totalTax = 0;
+        taxBands = taxBands.OrderBy(b => b.Min).ToList();
+
+        decimal totalTax = 0m;
         decimal incomeLeft = income;
 
         TaxResult taxResult = new TaxResult
         {
             GrossAnnualSalary = Math.Round(income, 2),
-            GrossMonthlySalary = Math.Round(income / 12, 2)
+            GrossMonthlySalary = Math.Round(income / 12m, 2)
         };
 
         foreach (var band in taxBands)
         {
-            if (incomeLeft <= 0)
-                break;
-
             decimal bandMin = (decimal)band.Min;
-            decimal bandMax = (decimal?)(band.Max) ?? decimal.MaxValue;
-            decimal taxableAmount = Math.Min(incomeLeft, bandMax - bandMin);
+            decimal bandMax = band.Max.HasValue ? (decimal)band.Max.Value : decimal.MaxValue;
+            decimal bandRange = bandMax - bandMin;
 
-            if (taxableAmount > 0)
+            if (income > bandMin)
             {
-                totalTax += taxableAmount * ((decimal)band.Rate);
+                decimal taxableAmount = Math.Min(incomeLeft, bandRange);
+                decimal bandTax = taxableAmount * (decimal)band.Rate;
+
+                totalTax += bandTax;
                 incomeLeft -= taxableAmount;
+
+                if (incomeLeft <= 0)
+                    break;
             }
         }
 
-        taxResult.NetAnnualSalary = Math.Round(income - totalTax, 2);
-        taxResult.NetMonthlySalary = Math.Round(taxResult.NetAnnualSalary / 12, 2);
         taxResult.AnnualTaxPaid = Math.Round(totalTax, 2);
-        taxResult.MonthlyTaxPaid = Math.Round(totalTax / 12, 2);
+        taxResult.MonthlyTaxPaid = Math.Round(totalTax / 12m, 2);
+        taxResult.NetAnnualSalary = Math.Round(income - totalTax, 2);
+        taxResult.NetMonthlySalary = Math.Round(taxResult.NetAnnualSalary / 12m, 2);
 
         return taxResult;
+    }
+
+    private TaxResult CreateZeroTaxResult(decimal income)
+    {
+        return new TaxResult
+        {
+            GrossAnnualSalary = Math.Round(income, 2),
+            GrossMonthlySalary = Math.Round(income / 12m, 2),
+            NetAnnualSalary = Math.Round(income, 2),
+            NetMonthlySalary = Math.Round(income / 12m, 2),
+            AnnualTaxPaid = 0m,
+            MonthlyTaxPaid = 0m
+        };
     }
 }
